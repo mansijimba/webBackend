@@ -4,9 +4,9 @@ const jwt = require ("jsonwebtoken")
 const { get } = require("mongoose")
 
 exports.registerUser = async (req, res) => {
-    const {username, email, firstName, lastName, password} = req.body
+    const {username, fullName, number, email, password, role} = req.body
     //validation
-    if (!username || !email || !password){
+    if (!username || !email || !password || !role){
          return res.status(400).json(
             {"success":false, "message": "Missing fields"}
          )
@@ -34,11 +34,11 @@ exports.registerUser = async (req, res) => {
         )// 10 is complexity
         const newUser = new User ({
             username,
-            email,
+            fullName,
             number,
-            firstName,
-            lastName,
-            password: hashedPas
+            email,
+            password: hashedPas,
+            role
         })
         await newUser.save()
         return res.status(201).json(
