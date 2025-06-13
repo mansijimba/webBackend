@@ -5,25 +5,7 @@ const jwt = require("jsonwebtoken");
 exports.registerUser = async (req, res) => {
   const { username, fullName, phoneNumber, email, password, role } = req.body;
 
-  // validation
-  if (!username || !email || !password || !role) {
-    return res.status(400).json({
-      success: false,
-      message: "Missing fields",
-    });
-  }
 
-  try {
-    const existingUser = await User.findOne({
-      $or: [{ username: username }, { email: email }],
-    });
-
-    if (existingUser) {
-      return res.status(400).json({
-        success: false,
-        message: "User exists",
-      });
-    }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -51,7 +33,25 @@ exports.registerUser = async (req, res) => {
   }
 };
 
+exports.loginUser = async (req, res) => {
+  const { email, password } = req.body;
 
+  if (!email || !password) {
+    return res.status(400).json({
+      success: false,
+      message: "Missing Field",
+    });
+  }
+
+  try {
+    const getUser = await User.findOne({ email: email });
+
+    if (!getUser) {
+      return res.status(403).json({
+        success: false,
+        message: "User not found",
+      });
+    }
 
     const passwordCheck = await bcrypt.compare(password, getUser.password);
 
