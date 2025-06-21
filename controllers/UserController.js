@@ -3,9 +3,27 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
 exports.registerUser = async (req, res) => {
-  const { username, fullName, phoneNumber, email, password, role } = req.body;
+  const { username, fullName, phoneNumber, email, password} = req.body;
 
+  // validation
+  if (!username || !email || !password) {
+    return res.status(400).json({
+      success: false,
+      message: "Missing fields",
+    });
+  }
 
+  try {
+    const existingUser = await User.findOne({
+      $or: [{ username: username }, { email: email }],
+    });
+
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: "User exists",
+      });
+    }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -15,7 +33,6 @@ exports.registerUser = async (req, res) => {
       number: phoneNumber,
       email,
       password: hashedPassword,
-      role,
     });
 
     await newUser.save();
