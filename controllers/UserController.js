@@ -1,12 +1,13 @@
 const User = require("../models/User");
+
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
 exports.registerUser = async (req, res) => {
-  const { username, fullName, phoneNumber, email, password} = req.body;
+  const { fullName, phone, email, password} = req.body;
 
   // validation
-  if (!username || !email || !password) {
+  if ( !email || !password) {
     return res.status(400).json({
       success: false,
       message: "Missing fields",
@@ -15,7 +16,7 @@ exports.registerUser = async (req, res) => {
 
   try {
     const existingUser = await User.findOne({
-      $or: [{ username: username }, { email: email }],
+      $or: [{ fullName: fullName }, { email: email }],
     });
 
     if (existingUser) {
@@ -28,9 +29,8 @@ exports.registerUser = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser = new User({
-      username,
       fullName,
-      number: phoneNumber,
+      phone,
       email,
       password: hashedPassword,
     });
@@ -82,7 +82,7 @@ exports.loginUser = async (req, res) => {
     const payload = {
       _id: getUser._id,
       email: getUser.email,
-      username: getUser.username,
+      fullName: getUser.fullName,
     };
 
     const token = jwt.sign(payload, process.env.SECRET, {
@@ -94,7 +94,7 @@ exports.loginUser = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Login Successful",
-      data: userWithoutPassword,
+      user: userWithoutPassword,
       token,
     });
   } catch (err) {
