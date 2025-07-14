@@ -22,6 +22,8 @@ const queueRoute = require ('./routes/admin/QueueRoute')
 const doctorRoute = require ('./routes/admin/DoctorRoute')
 const adminRoute = require ('./routes/adminRoute')
 const patientRoute = require ('./routes/admin/PatientRoute')
+const doctorUserRoute = require ('./routes/DoctorUserRoute')
+const userappointment = require ('./routes/AppointmentUserRoute')
 
 app.use('/api/auth', userRoute)
 app.use('/api/admin/appointments', appointmnetRoute)
@@ -29,11 +31,7 @@ app.use('/api/admin/queues', queueRoute)
 app.use('/api/admin/doctors', doctorRoute)
 app.use('/api/admins', adminRoute)
 app.use('/api/admin/patients', patientRoute)
+app.use('/api/doctor', doctorUserRoute)
+app.use('/api/appointment', userappointment)
 
-
-app.listen(
-    5050, //port -> localhost:5050
-    () => {
-        console.log("Server started")
-    }
-)
+module.exports = app

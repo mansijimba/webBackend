@@ -4,7 +4,7 @@ const Doctor = require('../../models/admin/Doctor');
 exports.createDoctor = async (req, res) => {
   try {
     const filepath = req.file?.path;
-    const doctor = new Doctor({ ...req.body, image: filepath });
+    const doctor = new Doctor({ ...req.body, filepath: filepath });
     await doctor.save();
     return res.status(201).json({
       success: true,
