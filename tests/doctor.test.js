@@ -11,11 +11,6 @@ afterAll(async () => {
 
 describe("Doctor API tests", () => {
 
-  beforeAll(async () => {
-    // Clean up doctors collection before tests
-    await Doctor.deleteMany({})
-  })
-
   test("Create a doctor successfully", async () => {
     const res = await request(app)
       .post("/api/admin/doctors")  // Adjust route based on your routing
@@ -76,5 +71,37 @@ describe("Doctor API tests", () => {
     expect(res.body.success).toBe(true)
     expect(res.body.message).toBe("Doctor deleted")
   })
+
+  test("Should not create a doctor with missing fields", async () => {
+  const res = await request(app)
+    .post("/api/admin/doctors")
+    .send({
+      specialty: "Cardiology",
+      phone: "1234567890"
+    })
+
+  expect(res.statusCode).toBe(500)  
+  expect(res.body.success).toBe(false)
+})
+
+test("Should return 404 for non-existing doctor ID", async () => {
+  const res = await request(app)
+    .get("/api/admin/doctors/6123456789abcdef01234567")  // Random ObjectId
+
+  expect(res.statusCode).toBe(404)
+  expect(res.body.success).toBe(false)
+  expect(res.body.message).toBe("Doctor not found")
+})
+
+test("Should return 404 for non-existing doctor ID", async () => {
+  const res = await request(app)
+    .get("/api/admin/doctors/6123456789abcdef01234567")  // Random ObjectId
+
+  expect(res.statusCode).toBe(404)
+  expect(res.body.success).toBe(false)
+  expect(res.body.message).toBe("Doctor not found")
+})
+
+
 
 })
