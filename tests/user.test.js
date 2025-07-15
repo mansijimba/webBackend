@@ -11,9 +11,6 @@ let authToken;
 
 // 1. Describe
 describe("User Authentication API", () => {
-  beforeAll(async () => {
-    await User.deleteOne({ email: "pika12@gmail.com" });
-  });
 
   // 2. Individual test
   test("can validate user while creating user", async () => {
