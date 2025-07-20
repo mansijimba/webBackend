@@ -54,6 +54,7 @@ exports.bookAppointment = async (req, res) => {
 };
 
 // Get User's Appointments
+// Get User's Appointments
 exports.getUserAppointments = async (req, res) => {
   try {
     const { patientId } = req.query;
@@ -64,9 +65,12 @@ exports.getUserAppointments = async (req, res) => {
         .json({ success: false, message: "patientId is required" });
     }
 
-    const appointments = await Appointment.find({ patient: patientId })
-      .populate("doctor", "fullName specialty")
-      .sort({ date: -1, time: -1 });
+    const appointments = await Appointment.find({ 
+      patient: patientId, 
+      status: { $ne: "cancelled" }   
+    })
+    .populate("doctor", "name specialty")
+    .sort({ date: -1, time: -1 });
 
     res.json({ success: true, appointments });
   } catch (err) {
@@ -74,6 +78,7 @@ exports.getUserAppointments = async (req, res) => {
     res.status(500).json({ success: false, message: "Server Error" });
   }
 };
+
 
 // Cancel Appointment + Notify Admin
 exports.cancelAppointment = async (req, res) => {
