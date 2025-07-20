@@ -1,10 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const queueController = require('../../controllers/admin/QueueManagementController');
+const { getAllQueues, updateQueue, deleteQueue, createQueue } = require('../../controllers/admin/QueueManagementController');
 
-router.get('/', queueController.getQueue);
-router.post('/', queueController.enqueue);
-router.put('/:id', queueController.updateQueueStatus);
-router.delete('/:id', queueController.dequeue);
+router.get('/', getAllQueues);   
+router.patch('/:id', updateQueue);   
+router.delete('/:id', deleteQueue);
 
 module.exports = router;

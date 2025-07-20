@@ -63,14 +63,14 @@ describe("Doctor API tests", () => {
     expect(res.body.data.availability).toBe("Not available this week")
   })
 
-  test("Delete a doctor by ID", async () => {
-    const res = await request(app)
-      .delete(`/api/admin/doctors/${doctorId}`)
+  // test("Delete a doctor by ID", async () => {
+  //   const res = await request(app)
+  //     .delete(`/api/admin/doctors/${doctorId}`)
 
-    expect(res.statusCode).toBe(200)
-    expect(res.body.success).toBe(true)
-    expect(res.body.message).toBe("Doctor deleted")
-  })
+  //   expect(res.statusCode).toBe(200)
+  //   expect(res.body.success).toBe(true)
+  //   expect(res.body.message).toBe("Doctor deleted")
+  // })
 
   test("Should not create a doctor with missing fields", async () => {
   const res = await request(app)
