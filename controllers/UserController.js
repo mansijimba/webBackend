@@ -130,3 +130,48 @@ exports.loginUser = async (req, res) => {
     });
   }
 };
+
+exports.updateProfile = async (req, res) => {
+  console.log("updateProfile route called");
+  try {
+    // Check auth token
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).json({ message: "Token required" });
+    }
+    const token = authHeader.split(" ")[1];
+    if (!token) {
+      return res.status(401).json({ message: "Token missing" });
+    }
+
+    const decoded = jwt.verify(token, process.env.SECRET);
+    const user = await User.findById(decoded._id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const { fullName, phone, email, password } = req.body;
+
+    if (fullName) user.fullName = fullName;
+    if (phone) user.phone = phone;
+    if (email) user.email = email;
+
+    if (password) {
+      user.password = await bcrypt.hash(password, 10);
+    }
+
+    await user.save();
+
+    const { password: pwd, ...userWithoutPassword } = user.toObject();
+
+    return res.status(200).json({
+      success: true,
+      message: "Profile updated",
+      user: userWithoutPassword,
+    });
+  } catch (err) {
+    console.error("Update Profile Error:", err);
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+};
+

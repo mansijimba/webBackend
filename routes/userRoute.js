@@ -1,6 +1,6 @@
 const express = require("express")
 const router = express.Router ()
-const {registerUser, loginUser, getProfile} = require("../controllers/UserController")
+const {registerUser, loginUser, getProfile, updateProfile} = require("../controllers/UserController")
 
 
 
@@ -14,5 +14,7 @@ router.post(
     loginUser
 )
 router.get('/profile', getProfile);
+
+router.patch('/profile',updateProfile )
 
 module.exports = router
