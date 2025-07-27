@@ -1,3 +1,4 @@
+// models/Queue.js
 const mongoose = require('mongoose');
 
 const QueueSchema = new mongoose.Schema({
@@ -16,27 +17,20 @@ const QueueSchema = new mongoose.Schema({
     ref: 'Doctor',
     required: true
   },
+  queuePosition: {
+    type: Number,
+    required: true
+  },
   status: {
     type: String,
     enum: ['Waiting', 'In Progress', 'Not Arrived', 'Completed', 'No Show'],
     default: 'Waiting'
   },
-  arrivalTime: {
-    type: String, // e.g., "09:15 AM"
-    required: false
-  },
   appointmentTime: {
     type: String, // e.g., "09:30 AM"
-    required: false
   },
   waitTime: {
     type: String, // e.g., "15 min"
-    required: false
-  },
-  priority: {
-    type: String,
-    enum: ['High', 'Normal', 'Low'],
-    default: 'Normal'
   },
   createdAt: {
     type: Date,

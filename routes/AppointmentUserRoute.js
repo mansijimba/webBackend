@@ -1,8 +1,10 @@
 // routes/appointment.js (or similar)
 const express = require('express');
 const router = express.Router();
-const { bookAppointment } = require('../controllers/user/AppointmentUserController');
+const { bookAppointment, getUserAppointments, cancelAppointment } = require('../controllers/user/AppointmentUserController');
 
-router.post('/', bookAppointment);
+router.post('/book', bookAppointment);
+router.get('/', getUserAppointments);
+router.post('/:id/cancel', cancelAppointment);
 
 module.exports = router;

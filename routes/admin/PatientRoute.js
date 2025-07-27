@@ -4,6 +4,5 @@ const patientController = require('../../controllers/admin/PatientManagementCont
 
 // GET /api/admin/patients
 router.get('/', patientController.getAllPatients);
-router.post('/',patientController.createPatient);
 
 module.exports = router;

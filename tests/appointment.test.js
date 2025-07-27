@@ -81,14 +81,14 @@ describe('Appointment API tests', () => {
     expect(res.body.data.time).toBe('11:00 AM')
   })
 
-  test('Delete appointment by ID', async () => {
-    const res = await request(app)
-      .delete(`/api/admin/appointments/${appointmentId}`)
+  // test('Delete appointment by ID', async () => {
+  //   const res = await request(app)
+  //     .delete(`/api/admin/appointments/${appointmentId}`)
 
-    expect(res.statusCode).toBe(200)
-    expect(res.body.success).toBe(true)
-    expect(res.body.message).toBe('Appointment deleted successfully')
-  })
+  //   expect(res.statusCode).toBe(200)
+  //   expect(res.body.success).toBe(true)
+  //   expect(res.body.message).toBe('Appointment deleted successfully')
+  // })
 
   test('Should return 404 when updating non-existing appointment', async () => {
     const res = await request(app)

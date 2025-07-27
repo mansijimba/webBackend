@@ -24,6 +24,9 @@ const adminRoute = require ('./routes/adminRoute')
 const patientRoute = require ('./routes/admin/PatientRoute')
 const doctorUserRoute = require ('./routes/DoctorUserRoute')
 const userappointment = require ('./routes/AppointmentUserRoute')
+const userQueue = require ('./routes/QueueUserRoute')
+const adminmessage = require('./routes/admin/MessageRoute')
+
 
 app.use('/api/auth', userRoute)
 app.use('/api/admin/appointments', appointmnetRoute)
@@ -33,5 +36,7 @@ app.use('/api/admins', adminRoute)
 app.use('/api/admin/patients', patientRoute)
 app.use('/api/doctor', doctorUserRoute)
 app.use('/api/appointment', userappointment)
+app.use('/api/queue/status', userQueue)
+app.use('/api/admin/messages', adminmessage);
 
 module.exports = app

@@ -1,26 +1,12 @@
-const Patient = require('../../models/admin/Patient');
+// userController.js
+const User = require('../../models/User');
 
 exports.getAllPatients = async (req, res) => {
   try {
-    const patients = await Patient.find().sort({ name: 1 }); // sorted by name
-    res.json({ patients });
+    const users = await User.find().select('fullName email phone');
+    res.json({ patients: users }); // Notice we're sending as 'patients' for frontend compatibility
   } catch (error) {
-    console.error("Error fetching patients:", error);
-    res.status(500).json({ message: "Server error while fetching patients" });
-  }
-};
-
-exports.createPatient = async (req, res) => {
-  try {
-    const patients = new Patient(req.body);
-    await patients.save();
-    res.status(201).json({
-      success: true,
-      message: "Patient created successfully",
-      data: patients,
-    });
-  } catch (err) {
-    console.error("Error creating patient:", err);
-    res.status(500).json({ success: false, message: "Server error" });
+    console.error('Error fetching users as patients:', error);
+    res.status(500).json({ message: 'Server error while fetching patients' });
   }
 };

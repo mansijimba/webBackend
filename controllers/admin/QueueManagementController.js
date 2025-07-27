@@ -1,22 +1,63 @@
 const Queue = require('../../models/admin/Queue');
+const Appointment = require('../../models/admin/Appointment');
 
-exports.getQueue = async (req, res) => {
-  const queue = await Queue.find().populate('appointment');
-  res.json(queue);
+exports.getAllQueues = async (req, res) => {
+  try {
+    const queues = await Queue.find()
+      .populate('appointment')
+      .populate('patient', 'fullName')
+      .populate('doctor', 'name specialty')
+      .sort({ queuePosition: 1 });
+
+    res.status(200).json({
+      success: true,
+      data: queues,
+    });
+  } catch (err) {
+    console.error('Error fetching queues:', err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
 };
 
-exports.enqueue = async (req, res) => {
-  const queueItem = new Queue(req.body);
-  await queueItem.save();
-  res.status(201).json(queueItem);
+
+exports.updateQueue = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+
+    const updatedQueue = await Queue.findByIdAndUpdate(id, updateData, { new: true });
+
+    if (!updatedQueue) {
+      return res.status(404).json({ success: false, message: 'Queue entry not found' });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Queue updated successfully',
+      data: updatedQueue,
+    });
+  } catch (err) {
+    console.error('Error updating queue:', err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
 };
 
-exports.updateQueueStatus = async (req, res) => {
-  const updated = await Queue.findByIdAndUpdate(req.params.id, { status: req.body.status }, { new: true });
-  res.json(updated);
-};
+exports.deleteQueue = async (req, res) => {
+  try {
+    const { id } = req.params;
 
-exports.dequeue = async (req, res) => {
-  await Queue.findByIdAndDelete(req.params.id);
-  res.json({ message: 'Queue item removed' });
-};
+    const deletedQueue = await Queue.findByIdAndDelete(id);
+
+    if (!deletedQueue) {
+      return res.status(404).json({ success: false, message: 'Queue entry not found' });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Queue entry deleted successfully',
+    });
+  } catch (err) {
+    console.error('Error deleting queue:', err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+}; 
