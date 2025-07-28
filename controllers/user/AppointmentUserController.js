@@ -12,7 +12,6 @@ exports.bookAppointment = async (req, res) => {
         .status(400)
         .json({ success: false, message: "Missing required fields" });
     }
-
     // Step 1: Save the Appointment
     const appointment = await Appointment.create({
       doctor: doctorId,
@@ -23,7 +22,7 @@ exports.bookAppointment = async (req, res) => {
       type,
       status: "pending",
     });
-
+    
     // Step 2: Calculate next queue position
     const activeQueueCount = await Queue.countDocuments({
       doctor: doctorId,
@@ -54,7 +53,6 @@ exports.bookAppointment = async (req, res) => {
 };
 
 // Get User's Appointments
-// Get User's Appointments
 exports.getUserAppointments = async (req, res) => {
   try {
     const { patientId } = req.query;
@@ -78,8 +76,6 @@ exports.getUserAppointments = async (req, res) => {
     res.status(500).json({ success: false, message: "Server Error" });
   }
 };
-
-
 // Cancel Appointment + Notify Admin
 exports.cancelAppointment = async (req, res) => {
   try {
