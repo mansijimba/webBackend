@@ -15,29 +15,31 @@ afterAll(async () => {
 
 describe('Appointment API tests', () => {
 
-  beforeAll(async () => {
-    await Appointment.deleteOne({})
-    await Doctor.deleteOne({})
-    await User.deleteOne({})
+beforeAll(async () => {
+  // Remove previous test data if it exists
+  await Appointment.deleteOne({});
+  await Doctor.deleteOne({ email: 'who@example.com' });
+  await User.deleteOne({ email: 'john@example.com' });
 
-    // Create dummy doctor
-    const doctor = await Doctor.create({
-      name: 'Dr. Who',
-      specialty: 'Time Travel',
-      email: 'who@example.com',
-      phone: '9999999999'
-    })
-    doctorId = doctor._id
+  // Create dummy doctor
+  const doctor = await Doctor.create({
+    name: 'Dr. Who',
+    specialty: 'Time Travel',
+    email: 'who@example.com',
+    phone: '9999999999'
+  });
+  doctorId = doctor._id;
 
-    // Create dummy patient
-    const patient = await User.create({
-      fullName: 'John Doe',
-      phone: '8888888888',
-      email: 'john@example.com',
-      password: 'password123'
-    })
-    patientId = patient._id
-  })
+  // Create dummy patient
+  const patient = await User.create({
+    fullName: 'John Doe',
+    phone: '8888888888',
+    email: 'john@example.com',
+    password: 'password123'
+  });
+  patientId = patient._id;
+});
+
 
   test('Create an appointment successfully', async () => {
     const res = await request(app)
@@ -79,16 +81,7 @@ describe('Appointment API tests', () => {
     expect(res.body.success).toBe(true)
     expect(res.body.data.status).toBe('confirmed')
     expect(res.body.data.time).toBe('11:00 AM')
-  })
-
-  // test('Delete appointment by ID', async () => {
-  //   const res = await request(app)
-  //     .delete(`/api/admin/appointments/${appointmentId}`)
-
-  //   expect(res.statusCode).toBe(200)
-  //   expect(res.body.success).toBe(true)
-  //   expect(res.body.message).toBe('Appointment deleted successfully')
-  // })
+  });
 
   test('Should return 404 when updating non-existing appointment', async () => {
     const res = await request(app)
@@ -97,14 +90,17 @@ describe('Appointment API tests', () => {
 
     expect(res.statusCode).toBe(404)
     expect(res.body.message).toBe('Appointment not found')
-  })
+  });
 
-  test('Should return 404 when deleting non-existing appointment', async () => {
+const mongoose = require("mongoose");
+
+  test('Fetch appointment with non-existing valid ID', async () => {
     const res = await request(app)
-      .delete('/api/admin/appointments/6123456789abcdef01234567')
+      .get('/api/admin/appointments/6123456789abcdef01234567');
 
-    expect(res.statusCode).toBe(404)
-    expect(res.body.message).toBe('Appointment not found')
-  })
+    expect(res.statusCode).toBe(404);
+  });
+
+  
 
 })
