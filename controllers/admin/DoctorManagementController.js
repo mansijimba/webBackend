@@ -13,9 +13,17 @@ exports.createDoctor = async (req, res) => {
     });
   } catch (err) {
     console.error(err);
+    if (err.name === 'ValidationError') {
+      return res.status(400).json({
+        success: false,
+        message: err.message,
+        errors: err.errors,
+      });
+    }
     return res.status(500).json({ success: false, message: 'Server Error' });
   }
 };
+
 
 // Get all doctors
 exports.getAllDoctors = async (req, res) => {
