@@ -3,16 +3,28 @@ const Doctor = require('../../models/admin/Doctor');
 // Create a doctor
 exports.createDoctor = async (req, res) => {
   try {
-    const filepath = req.file?.path;
-    const doctor = new Doctor({ ...req.body, filepath: filepath });
+    let filepath = null;
+
+    if (req.file) {
+      // ALWAYS store web-safe path
+      filepath = `uploads/${req.file.filename}`;
+    }
+
+    const doctor = new Doctor({
+      ...req.body,
+      filepath,
+    });
+
     await doctor.save();
+
     return res.status(201).json({
       success: true,
       message: 'Doctor created',
       data: doctor,
     });
   } catch (err) {
-    console.error(err);
+    console.error('Create doctor error:', err);
+
     if (err.name === 'ValidationError') {
       return res.status(400).json({
         success: false,
@@ -20,7 +32,11 @@ exports.createDoctor = async (req, res) => {
         errors: err.errors,
       });
     }
-    return res.status(500).json({ success: false, message: 'Server Error' });
+
+    return res.status(500).json({
+      success: false,
+      message: 'Server Error',
+    });
   }
 };
 

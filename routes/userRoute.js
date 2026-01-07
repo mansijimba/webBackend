@@ -1,20 +1,38 @@
-const express = require("express")
-const router = express.Router ()
-const {registerUser, loginUser, getProfile, updateProfile} = require("../controllers/UserController")
+const express = require("express");
+const router = express.Router();
+const { authenticateUser } = require("../middlewares/authorizedUsers");
+const {
+  registerUser,
+  loginUser,
+  getProfile,
+  updateProfile,
+  setupMfa,
+  verifyMfaSetup,
+  verifyMfaLogin,
+  requestUnlock,
+  unlockAccount,
+  verifySecurityAnswers,
+  getSecurityQuestions
+} = require("../controllers/UserController");
 
+// AUTH
+router.post("/register", registerUser);
+router.post("/login", loginUser);
 
+// MFA
+router.post('/mfa/setup', setupMfa);
+router.post('/mfa/verify', verifyMfaSetup);
+router.post('/mfa/verify-login', verifyMfaLogin);
 
-router.post(
-    "/register",
-    registerUser
-)
+// ACCOUNT UNLOCK
+router.post('/request-unlock', requestUnlock);
+router.get('/unlock-account', unlockAccount);
+router.post('/unlock-account', unlockAccount);
+router.post('/security/verify', verifySecurityAnswers);
+router.post('/security/questions', getSecurityQuestions);
 
-router.post(
-    "/login",
-    loginUser
-)
-router.get('/profile', getProfile);
+// PROFILE (protected routes)
+router.get('/profile', authenticateUser, getProfile);
+router.patch('/profile', authenticateUser, updateProfile);
 
-router.patch('/profile',updateProfile )
-
-module.exports = router
+module.exports = router;

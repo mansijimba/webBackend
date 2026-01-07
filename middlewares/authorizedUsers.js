@@ -38,3 +38,30 @@ exports.authenticateAdmin = async (req, res, next) => {
     res.status(500).json({ success: false, message: "Authentication error" });
   }
 };
+
+exports.authenticateUser = async (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization; // "Bearer <token>"
+    if (!authHeader) {
+      return res.status(401).json({ success: false, message: "Token required" });
+    }
+
+    const token = authHeader.split(" ")[1];
+    if (!token) {
+      return res.status(401).json({ success: false, message: "Token missing" });
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.SECRET);
+    } catch (err) {
+      return res.status(401).json({ success: false, message: "Invalid or expired token" });
+    }
+
+    req.user = decoded; // Attach user info to req object (contains _id, email, fullName)
+    next();
+  } catch (err) {
+    console.error("User authentication error:", err);
+    res.status(500).json({ success: false, message: "Authentication error" });
+  }
+};
