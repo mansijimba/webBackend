@@ -15,7 +15,7 @@ mongoose.connect('mongodb://localhost:27017/mediqueue', {
     await Admin.create({
       email: 'admin@mediqueue.com'.toLowerCase(),
       password: hashedPassword,
-    });
+    });z
 
     console.log('Admin created successfully');
   } catch (err) {

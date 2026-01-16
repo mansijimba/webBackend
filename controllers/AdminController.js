@@ -1,46 +1,39 @@
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const Admin = require('../models/AdminAuth');
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 
 exports.adminLogin = async (req, res) => {
   const { email, password } = req.body;
 
-  try {
-    // Normalize email
-    const normalizedEmail = email.toLowerCase();
-
-    // Check if admin exists
-    const admin = await Admin.findOne({ email: normalizedEmail });
-    if (!admin) {
-      return res.status(401).json({ message: 'Invalid email or password' });
-    }
-
-    // Compare password
-    const isMatch = await bcrypt.compare(password, admin.password);
-    if (!isMatch) {
-      return res.status(401).json({ message: 'Invalid email or password' });
-    }
-
-    // Sign JWT token
-    const token = jwt.sign(
-      { id: admin._id, role: 'admin' },
-      process.env.JWT_SECRET || 'your_jwt_secret',
-      { expiresIn: '1d' }
-    );
-
-    // Send response
-    return res.status(200).json({
-      message: 'Login successful',
-      user: {
-        _id: admin._id,
-        email: admin.email,
-        role: 'admin',
-      },
-      token,
-    });
-
-  } catch (error) {
-    console.error('Admin login error:', error);
-    return res.status(500).json({ message: 'Internal server error' });
+  if (!process.env.SECRET) {
+    return res.status(500).json({ message: "JWT secret not defined in environment" });
   }
+
+  if (email !== process.env.ADMIN_EMAIL) {
+    return res.status(401).json({ message: "Invalid credentials" });
+  }
+
+  const match = await bcrypt.compare(password, process.env.ADMIN_PASSWORD_HASH);
+  if (!match) {
+    return res.status(401).json({ message: "Invalid credentials" });
+  }
+
+  // Example in adminLogin (backend)
+const token = jwt.sign(
+  { id: "SYSTEM_ADMIN", role: "admin" },
+  process.env.SECRET,
+  { expiresIn: "1h" } // shorter expiration for security
+);
+
+res
+  .cookie("auth_token", token, {
+    httpOnly: true,       // Prevent JS access
+    secure: process.env.NODE_ENV === "production", // HTTPS only in prod
+    sameSite: "Strict",   // Prevent CSRF
+    maxAge: 60 * 60 * 1000, // 1 hour
+  })
+  .status(200)
+  .json({
+    message: "Admin login successful",
+    user: { email: process.env.ADMIN_EMAIL, role: "admin" },
+  });
 };

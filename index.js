@@ -1,42 +1,28 @@
-const express = require ("express")
-const cors = require("cors")
-const connectDB = require ("./config/db")
+const express = require("express");
+const cors = require("cors");
+const path = require("path");
+const connectDB = require("./config/db");
 
-const path = require("path")
 const app = express();
 
-let corsOptions = {
-    origin: "*" // or list of domain to whitelist
-}
-app.use(cors(corsOptions))
+// Connect DB
+connectDB();
 
+app.use(cors({
+  origin: "http://localhost:5173",
+  credentials: true,
+}));
+
+
+// Middleware
 app.use(express.json());
-app.use(cors());
 
-app.use("/uploads", express.static(path.join(__dirname,"uploads")))
+// Static
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-const PORT = process.env.PORT
-const userRoute = require('./routes/userRoute')
-const appointmnetRoute = require ('./routes/admin/AppointmentRoute')
-const queueRoute = require ('./routes/admin/QueueRoute')
-const doctorRoute = require ('./routes/admin/DoctorRoute')
-const adminRoute = require ('./routes/adminRoute')
-const patientRoute = require ('./routes/admin/PatientRoute')
-const doctorUserRoute = require ('./routes/DoctorUserRoute')
-const userappointment = require ('./routes/AppointmentUserRoute')
-const userQueue = require ('./routes/QueueUserRoute')
-const adminmessage = require('./routes/admin/MessageRoute')
+// Routes
+app.use("/api/auth", require("./routes/userRoute"));
+app.use("/api/admins", require("./routes/adminRoute"));
+// ... other routes
 
-
-app.use('/api/auth', userRoute)
-app.use('/api/admin/appointments', appointmnetRoute)
-app.use('/api/admin/queues', queueRoute)
-app.use('/api/admin/doctors', doctorRoute)
-app.use('/api/admins', adminRoute)
-app.use('/api/admin/patients', patientRoute)
-app.use('/api/doctor', doctorUserRoute)
-app.use('/api/appointment', userappointment)
-app.use('/api/queue/status', userQueue)
-app.use('/api/admin/messages', adminmessage);
-
-module.exports = app
+module.exports = app;
