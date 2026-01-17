@@ -12,7 +12,8 @@ const {
   requestUnlock,
   unlockAccount,
   verifySecurityAnswers,
-  getSecurityQuestions
+  getSecurityQuestions,
+  logoutUser
 } = require("../controllers/UserController");
 
 // AUTH
@@ -34,5 +35,5 @@ router.post('/security/questions', getSecurityQuestions);
 // PROFILE (protected routes)
 router.get('/profile', authenticateUser, getProfile);
 router.patch('/profile', authenticateUser, updateProfile);
-
+router.post("/logout", logoutUser);
 module.exports = router;

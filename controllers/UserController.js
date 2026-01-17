@@ -237,7 +237,7 @@ exports.loginUser = async (req, res) => {
       .cookie("auth_token", token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "Strict",
+        sameSite: "Lax",
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       })
       .status(200)
@@ -419,7 +419,7 @@ exports.unlockAccount = async (req, res) => {
 // ====================== PROFILE ======================
 exports.getProfile = async (req, res) => {
   try {
-    const userId = req.auth.id;
+    const userId = req.auth._id;
 
     const user = await User.findById(userId);
     if (!user)
@@ -438,7 +438,7 @@ exports.getProfile = async (req, res) => {
 
 exports.updateProfile = async (req, res) => {
   try {
-    const userId = req.auth.id;
+    const userId = req.auth._id;
     const { fullName, phone } = req.body;
 
     const user = await User.findById(userId);
@@ -738,5 +738,24 @@ exports.verifySecurityAnswers = async (req, res) => {
     return res
       .status(500)
       .json({ success: false, message: "Server error", errors: [err.message] });
+  }
+};
+
+exports.logoutUser = async (req, res) => {
+  try {
+    // Clear the JWT cookie
+    res.clearCookie("auth_token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // only HTTPS in production
+      sameSite: "Strict",
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Logged out successfully",
+    });
+  } catch (err) {
+    console.error("Logout error:", err);
+    return res.status(500).json({ success: false, message: "Server error" });
   }
 };

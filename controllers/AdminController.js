@@ -37,3 +37,14 @@ res
     user: { email: process.env.ADMIN_EMAIL, role: "admin" },
   });
 };
+
+exports.adminLogout = (req, res) => {
+  res
+    .clearCookie("auth_token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "Strict",
+    })
+    .status(200)
+    .json({ message: "Admin logged out successfully" });
+};
