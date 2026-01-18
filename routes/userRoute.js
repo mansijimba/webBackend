@@ -1,39 +1,29 @@
 const express = require("express");
 const router = express.Router();
 const { authenticateUser } = require("../middlewares/authorizedUsers");
+const { verifyCsrfToken, generateCsrfToken } = require("../middlewares/csrfmiddleware");
 const {
   registerUser,
   loginUser,
+  verifyEmailOtp,
   getProfile,
   updateProfile,
-  setupMfa,
-  verifyMfaSetup,
-  verifyMfaLogin,
-  requestUnlock,
-  unlockAccount,
-  verifySecurityAnswers,
-  getSecurityQuestions,
-  logoutUser
+  logoutUser,
 } = require("../controllers/UserController");
+
+// CSRF Token
+router.get("/csrf-token", generateCsrfToken);
 
 // AUTH
 router.post("/register", registerUser);
-router.post("/login", loginUser);
+router.post("/login", loginUser); // sends OTP
+router.post("/verify-otp", verifyEmailOtp); // verifies OTP and logs in
 
-// MFA
-router.post('/mfa/setup', setupMfa);
-router.post('/mfa/verify', verifyMfaSetup);
-router.post('/mfa/verify-login', verifyMfaLogin);
+// PROFILE (protected)
+router.get("/profile", authenticateUser, getProfile);
+router.patch("/profile", authenticateUser, verifyCsrfToken, updateProfile);
 
-// ACCOUNT UNLOCK
-router.post('/request-unlock', requestUnlock);
-router.get('/unlock-account', unlockAccount);
-router.post('/unlock-account', unlockAccount);
-router.post('/security/verify', verifySecurityAnswers);
-router.post('/security/questions', getSecurityQuestions);
+// LOGOUT
+router.post("/logout",logoutUser);
 
-// PROFILE (protected routes)
-router.get('/profile', authenticateUser, getProfile);
-router.patch('/profile', authenticateUser, updateProfile);
-router.post("/logout", logoutUser);
 module.exports = router;

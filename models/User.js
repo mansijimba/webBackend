@@ -23,6 +23,15 @@ const UserSchema = new mongoose.Schema (
       enum: ["user"],
       default: "user"
     },
+    emailOtp: {
+  type: String,
+  default: null
+},
+emailOtpExpiry: {
+  type: Date,
+  default: null
+},
+
         passwordHistory: {
             type: [
                 {
