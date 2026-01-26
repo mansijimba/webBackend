@@ -32,7 +32,22 @@ const AppointmentSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: ['pending', 'confirmed', 'completed', 'cancelled'], 
-      default: "confirmed",
+      default: "pending",
+    },
+    // ============ ESEWA PAYMENT FIELDS (ADDED BY PAYMENT INTEGRATION) ============
+    appointmentFee: {
+      type: Number,
+      default: 0, // Set consultation fee based on appointment type
+    },
+    paymentStatus: {
+      type: String,
+      enum: ['unpaid', 'processing', 'completed', 'failed'],
+      default: 'unpaid',
+    },
+    paymentResult: {
+      transactionId: String,
+      status: String,
+      amount: Number,
     },
   },
   {

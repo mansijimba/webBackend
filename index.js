@@ -34,4 +34,5 @@ app.use('/api/appointment', require('./routes/AppointmentUserRoute'));
 app.use('/api/queue/status', require('./routes/QueueUserRoute'));
 app.use('/api/admin/messages', require('./routes/admin/MessageRoute'));
 
+
 module.exports = app;

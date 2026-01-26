@@ -1,9 +1,14 @@
-// routes/admin/MessageRoute.js
 const express = require('express');
 const router = express.Router();
 
 const { getAllMessages } = require('../../controllers/admin/MessageController');
+const { authenticateUser } = require('../../middlewares/authorizedUsers');
+const adminOnly = require('../../middlewares/rolemiddleware')('admin');
 
+// 🔐 Protect ALL admin message routes
+router.use(authenticateUser, adminOnly);
+
+// ✅ Get all messages (admin only)
 router.get('/', getAllMessages);
 
 module.exports = router;

@@ -10,7 +10,7 @@ router.post("/login", adminLogin);
 router.post("/logout", adminLogout);
 
 // Protected route
-router.get("/dashboard", authenticateUser, adminOnly, (req, res) => {
+router.get("/", authenticateUser, adminOnly, (req, res) => {
   res.json({
     message: "Welcome to Admin Dashboard",
     adminId: req.auth.id
