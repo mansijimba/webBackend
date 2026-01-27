@@ -9,6 +9,8 @@ const {
   getProfile,
   updateProfile,
   logoutUser,
+  requestUnlock,      
+  verifyUnlock
 } = require("../controllers/UserController");
 
 // CSRF Token
@@ -25,5 +27,8 @@ router.patch("/profile", authenticateUser, verifyCsrfToken, updateProfile);
 
 // LOGOUT
 router.post("/logout",logoutUser);
+
+router.post("/request-unlock", requestUnlock);       // returns security question
+router.post("/verify-unlock", verifyUnlock); 
 
 module.exports = router;

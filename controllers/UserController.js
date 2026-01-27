@@ -11,81 +11,47 @@ const { invalidateCsrfToken } = require("../middlewares/csrfmiddleware");
 
 // Lockout policy
 const MAX_FAILED_LOGIN = 5; // lock after 5 failed attempts
-const LOCK_TIME_MS = 30 * 60 * 1000; // 30 minutes
+const LOCK_TIME_MS = 1 * 60 * 1000; // 30 minutes
 const OTP_EXPIRY_MS = 5 * 60 * 1000; // 5 minutes
 
-// ====================== USER REGISTRATION ======================
 exports.registerUser = async (req, res) => {
   const { fullName, phone, email, password, securityQuestions } = req.body;
 
   if (!email || !password) {
-    return res
-      .status(400)
-      .json({ success: false, message: "Missing fields", errors: [] });
-  }
-
-  const passwordValidation = validatePasswordStrength(password);
-  if (!passwordValidation.valid) {
-    return res
-      .status(400)
-      .json({
-        success: false,
-        message: "Password does not meet security requirements",
-        errors: passwordValidation.errors,
-      });
+    return res.status(400).json({ success: false, message: "Missing fields" });
   }
 
   try {
-    const existingUser = await User.findOne({ $or: [{ fullName }, { email }] });
+    const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res
-        .status(400)
-        .json({ success: false, message: "User exists", errors: [] });
+      return res.status(400).json({ success: false, message: "User exists" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const passwordExpiry = new Date();
-    passwordExpiry.setDate(passwordExpiry.getDate() + 90); // 90 days
+    const hashedQuestions = [];
+    if (securityQuestions && Array.isArray(securityQuestions)) {
+      for (const sq of securityQuestions) {
+        if (!sq.question || !sq.answer) continue;
+        const answerHash = await bcrypt.hash(sq.answer, 10);
+        hashedQuestions.push({ question: sq.question, answerHash });
+      }
+    }
 
     const newUser = new User({
       fullName,
       phone,
       email,
       password: hashedPassword,
-      passwordHistory: [],
-      passwordExpiry,
-      passwordChangedAt: new Date(),
-      isPasswordExpired: false,
-      failedLoginAttempts: 0,
-      isLocked: false,
+      securityQuestions: hashedQuestions,
     });
-
-    // Hash and store security question answers
-    if (
-      securityQuestions &&
-      Array.isArray(securityQuestions) &&
-      securityQuestions.length > 0
-    ) {
-      const hashed = [];
-      for (const sq of securityQuestions) {
-        if (!sq.question || !sq.answer) continue;
-        const answerHash = await bcrypt.hash(sq.answer, 10);
-        hashed.push({ question: sq.question, answerHash });
-      }
-      newUser.securityQuestions = hashed;
-    }
 
     await newUser.save();
 
-    return res
-      .status(201)
-      .json({ success: true, message: "User Registered", errors: [] });
+    return res.status(201).json({ success: true, message: "User Registered" });
   } catch (err) {
     console.error(err);
-    return res
-      .status(500)
-      .json({ success: false, message: "Server error", errors: [err.message] });
+    return res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
@@ -113,12 +79,18 @@ exports.loginUser = async (req, res) => {
     ) {
       return res.status(403).json({
         success: false,
+        locked: true,
         message:
-          "Account locked due to repeated failed login attempts. Try later.",
+          "Account locked due to repeated failed login attempts. Answer the security question to unlock.",
+        securityQuestions:
+          user.securityQuestions?.map((sq) => ({
+            question: sq.question,
+            _id: sq._id.toString(), // Ensure _id is a string
+          })) || [],
         lockUntil: user.lockUntil,
+        email: user.email, // Include email for unlock process
       });
     }
-
     // Unlock if lock period expired
     if (
       user.isLocked &&
@@ -145,15 +117,22 @@ exports.loginUser = async (req, res) => {
       user.failedLoginAttempts = (user.failedLoginAttempts || 0) + 1;
 
       // Lock account if max attempts reached
-      if (user.failedLoginAttempts >= MAX_FAILED_LOGIN) {
-        user.isLocked = true;
-        user.lockUntil = new Date(Date.now() + LOCK_TIME_MS);
-        await user.save();
-        return res.status(403).json({
-          success: false,
-          message: "Account locked. Request unlock link.",
-        });
-      }
+   if (user.failedLoginAttempts >= MAX_FAILED_LOGIN) {
+  user.isLocked = true;
+  user.lockUntil = new Date(Date.now() + LOCK_TIME_MS);
+  await user.save();
+  return res.status(403).json({
+    success: false,
+    locked: true,
+    message: "Account locked due to repeated failed login attempts. Answer the security question to unlock.",
+    securityQuestions: user.securityQuestions?.map(sq => ({ 
+      _id: sq._id.toString(), 
+      question: sq.question 
+    })) || [],
+    lockUntil: user.lockUntil,
+    email: user.email // Include email for unlock process
+  });
+}
 
       await user.save();
       return res
@@ -189,7 +168,6 @@ exports.loginUser = async (req, res) => {
   }
 };
 
-// ====================== VERIFY OTP ======================
 exports.verifyEmailOtp = async (req, res) => {
   const { userId, otp } = req.body;
 
@@ -208,7 +186,6 @@ exports.verifyEmailOtp = async (req, res) => {
       return res.status(403).json({ message: "Invalid OTP" });
     }
 
-    // Clear OTP after successful verification
     user.emailOtp = null;
     user.emailOtpExpiry = null;
     await user.save();
@@ -283,10 +260,67 @@ exports.logoutUser = async (req, res) => {
       secure: process.env.NODE_ENV === "production",
       sameSite: "Strict",
     });
-  invalidateCsrfToken(req, res);
+    invalidateCsrfToken(req, res);
 
     return res.status(200).json({ success: true, message: "Logged out" });
   } catch (err) {
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+// ------------------ Request Unlock / Fetch Security Question ----------------
+exports.requestUnlock = async (req, res) => {
+  const { email } = req.body;
+  try {
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!user.isLocked)
+      return res.status(400).json({ message: "Account is not locked" });
+
+    if (!user.securityQuestions || user.securityQuestions.length === 0) {
+      return res.status(400).json({ message: "No security questions set" });
+    }
+
+    // Return full array
+    return res.json({
+      securityQuestions: user.securityQuestions.map((sq) => ({
+        question: sq.question,
+        _id: sq._id,
+      })),
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+// ------------------ Verify Security Answer / Unlock ----------------
+exports.verifyUnlock = async (req, res) => {
+  const { email, answer } = req.body;
+  try {
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!user.isLocked)
+      return res.status(400).json({ message: "Account is not locked" });
+
+    let matched = false;
+    for (const sq of user.securityQuestions) {
+      if (await bcrypt.compare(answer, sq.answerHash)) {
+        matched = true;
+        break;
+      }
+    }
+
+    if (!matched) return res.status(400).json({ message: "Incorrect answer" });
+
+    user.isLocked = false;
+    user.failedLoginAttempts = 0;
+    user.lockUntil = null;
+    await user.save();
+
+    return res.json({ message: "Account unlocked successfully!" });
+  } catch (err) {
+    console.error(err);
     return res.status(500).json({ message: "Server error" });
   }
 };
