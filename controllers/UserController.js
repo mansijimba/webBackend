@@ -130,7 +130,7 @@ exports.loginUser = async (req, res) => {
       question: sq.question 
     })) || [],
     lockUntil: user.lockUntil,
-    email: user.email // Include email for unlock process
+    email: user.email 
   });
 }
 
